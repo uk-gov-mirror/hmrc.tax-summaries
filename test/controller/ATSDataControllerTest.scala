@@ -16,20 +16,29 @@
 
 package controller
 
+import akka.stream.Materializer
+import com.google.inject.Inject
 import controllers.ATSDataController
+import errors.AtsError
+import models.{AtsMiddleTierTaxpayerData, AtsYearList}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.test.FakeRequest
 import services.OdsService
-import uk.gov.hmrc.play.test.{WithFakeApplication, UnitSpec}
+import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
+import play.api.libs.json.Json
 import utils.TestConstants._
+
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 class ATSDataControllerTest extends UnitSpec with MockitoSugar with WithFakeApplication with ScalaFutures {
+
+  implicit val mtzr: Materializer = fakeApplication.materializer
+
 
   implicit val defaultPatience =
     PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
@@ -61,6 +70,52 @@ class ATSDataControllerTest extends UnitSpec with MockitoSugar with WithFakeAppl
   }
 
   "getATSList" should {
+
+    "return 200 ATlist as json" in new TestController {
+
+      val atsYearList = AtsYearList(testUtr, AtsMiddleTierTaxpayerData(None, None), Nil)
+
+      when(odsService.getATSList(eqTo(testUtr))(any[HeaderCarrier])).thenReturn(Future.successful(Right(atsYearList)))
+
+      val result = getATSList(testUtr)(request)
+
+      status(result) shouldBe OK
+      whenReady(result) {res =>
+        bodyOf(res) shouldBe Json.toJson(atsYearList).toString
+      }
+
+    }
+
+    "return an Internal Server Error" when {
+
+      "a generic error occurs" in new TestController {
+        when(odsService.getATSList(eqTo(testUtr))(any[HeaderCarrier])).thenReturn(Future.successful(Left(AtsError("Generic error"))))
+
+        val res = getATSList(testUtr)(request)
+        status(res) shouldBe INTERNAL_SERVER_ERROR
+        whenReady(res) { res =>
+          bodyOf(res) shouldBe "Generic error"
+        }
+      }
+
+
+      "a Json Parsing Error occurs" in new TestController {
+        when(odsService.getATSList(eqTo(testUtr))(any[HeaderCarrier])).thenReturn(Future.successful(Left(AtsError("JsonParsingError"))))
+
+        val res = getATSList(testUtr)(request)
+        status(res) shouldBe INTERNAL_SERVER_ERROR
+        whenReady(res) {res =>
+          bodyOf(res) shouldBe "Failed to parse Json data"
+        }
+      }
+    }
+
+    "return a Not Found Error" in new TestController {
+      when(odsService.getATSList(eqTo(testUtr))(any[HeaderCarrier])).thenReturn(Future.successful(Left(AtsError("NoAtsData"))))
+      val res = getATSList(testUtr)(request)
+      status(res) shouldBe NOT_FOUND
+
+    }
 
     "return a failed future" in new TestController {
       when(odsService.getATSList(eqTo(testUtr))(any[HeaderCarrier])).thenReturn(Future.failed(new Exception("failed")))

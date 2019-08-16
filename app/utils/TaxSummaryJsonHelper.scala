@@ -20,7 +20,7 @@ import models.AtsYearList
 import play.api.libs.json.{JsNumber, JsValue, Json}
 import transformers.{ATSTaxpayerDataTransformer, ATSRawDataTransformer}
 
-trait TaxsJsonHelper {
+trait TaxSummaryJsonHelper {
 
   def getAllATSData(rawTaxpayerJson: JsValue, rawPayloadJson: JsValue, UTR: String, taxYear: Int): JsValue = {
     Json.toJson(ATSRawDataTransformer(rawPayloadJson, rawTaxpayerJson, UTR, taxYear).atsDataDTO)
@@ -31,11 +31,11 @@ trait TaxsJsonHelper {
     annualTaxSummaries.flatMap(item => (item \ "taxYearEnd").asOpt[JsNumber]).nonEmpty
   }
 
-  def createTaxYearJson(rawJson: JsValue, utr: String, rawTaxpayerJson: JsValue): JsValue = {
+  def createTaxYearJson(rawJson: JsValue, utr: String, rawTaxpayerJson: JsValue): AtsYearList = {
     val annualTaxSummariesList: List[JsValue] = (rawJson \ "annualTaxSummaries").as[List[JsValue]]
-    val atsYearList = annualTaxSummariesList.map(item => (item \ "taxYearEnd").as[JsNumber])
+    val atsYearList = annualTaxSummariesList.map(item => (item \ "taxYearEnd").as[Int])
     val taxPayer = ATSTaxpayerDataTransformer(rawTaxpayerJson).atsTaxpayerDataDTO
 
-    Json.toJson(AtsYearList(utr, Some(taxPayer), Some(atsYearList)))
+    AtsYearList(utr, taxPayer, atsYearList)
   }
 }

@@ -16,9 +16,13 @@
 
 package controllers
 
-import play.api.mvc.Action
+import errors.AtsError
+import models.AtsYearList
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent}
 import services.OdsService
 import uk.gov.hmrc.play.microservice.controller.BaseController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object ATSDataController extends ATSDataController {
@@ -29,7 +33,7 @@ trait ATSDataController extends BaseController {
 
   def odsService: OdsService
 
-  def hasAts(utr: String) = Action.async {
+  def hasAts(utr: String): Action[AnyContent] = Action.async {
     implicit request => {
         odsService.getList(utr) map (Ok(_)) recover {
           case error => NotFound
@@ -37,15 +41,23 @@ trait ATSDataController extends BaseController {
       }
   }
 
-  def getATSData(utr: String, tax_year: Int) = Action.async {
+  def getATSData(utr: String, tax_year: Int): Action[AnyContent] = Action.async {
     implicit request => {
       odsService.getPayload(utr, tax_year)  map {Ok(_)}
     }
   }
 
-  def getATSList(utr: String) = Action.async {
+  def getATSList(utr: String): Action[AnyContent] = Action.async {
     implicit request => {
-      odsService.getATSList(utr) map {Ok(_)}
+      odsService.getATSList(utr).map{
+        _.fold({
+          case AtsError("NoAtsData") => NotFound
+          case AtsError("JsonParsingError") => InternalServerError("Failed to parse Json data")
+          case AtsError(e) => InternalServerError(e)
+        },{
+            atsYearList =>  Ok(Json.toJson(atsYearList))
+          })
+      }
     }
   }
 }

@@ -23,14 +23,14 @@ import models.{AtsYearList, AtsCheck, AtsMiddleTierData}
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.{JsValue, Json}
-import utils.TaxsJsonHelper
+import utils.TaxSummaryJsonHelper
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 
 trait OdsService {
 
-  def jsonHelper: TaxsJsonHelper
+  def jsonHelper: TaxSummaryJsonHelper
   def odsConnector: ODSConnector
 
   def getPayload(UTR: String, TAX_YEAR: Int)(implicit hc: HeaderCarrier): Future[JsValue] = {
@@ -52,26 +52,26 @@ trait OdsService {
     for (taxSummariesIn <-odsConnector.connectToSelfAssessmentList(UTR)) yield Json.toJson(AtsCheck(jsonHelper.hasAtsForPreviousPeriod(taxSummariesIn)))
   }
 
-  def getATSList(UTR: String)(implicit hc: HeaderCarrier): Future[JsValue] = {
-    {
-      for (taxSummariesIn <- odsConnector.connectToSelfAssessmentList(UTR);
-           taxpayer <- odsConnector.connectToSATaxpayerDetails(UTR))
-      yield jsonHelper.createTaxYearJson(taxSummariesIn, UTR, taxpayer)
+  def getATSList(UTR: String)(implicit hc: HeaderCarrier): Future[Either[AtsError, AtsYearList]] = {
+    {for {
+      taxSummariesIn <- odsConnector.connectToSelfAssessmentList(UTR)
+      taxpayer <- odsConnector.connectToSATaxpayerDetails(UTR)
+    } yield Right(jsonHelper.createTaxYearJson(taxSummariesIn, UTR, taxpayer))
     } recover {
       case error: JsonParseException =>
         Logger.error("Malformed JSON", error)
-        Json.toJson(AtsYearList(UTR, None, None, Some(AtsError("JsonParsingError"))))
+        Left(AtsError("JsonParsingError"))
       case error: NotFoundException =>
         Logger.error("No ATS error", error)
-        Json.toJson(AtsYearList(UTR, None, None, Some(AtsError("NoAtsData"))))
+        Left(AtsError("NoAtsData"))
       case error: Throwable =>
         Logger.error("Generic error", error)
-        Json.toJson(AtsYearList(UTR, None, None, Some(AtsError(error.getMessage()))))
+        Left(AtsError(error.getMessage))
     }
   }
 }
 
 object OdsService extends OdsService {
   override val odsConnector = ODSConnector
-  override val jsonHelper: TaxsJsonHelper = new TaxsJsonHelper {}
+  override val jsonHelper: TaxSummaryJsonHelper = new TaxSummaryJsonHelper {}
 }

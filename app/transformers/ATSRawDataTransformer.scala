@@ -28,11 +28,11 @@ import services.TaxRateService
 case class ATSParsingException(s: String) extends Exception(s)
 
 case class ATSRawDataTransformer(rawJsonFromStub: JsValue, rawTaxPayerJson: JsValue, UTR: String, taxYear: Int) {
-  
+
   val formatter = NumberFormat.getNumberInstance(Locale.UK)
 
   private def noAtsResult: AtsMiddleTierData = AtsMiddleTierData(taxYear, None, None, None, None, None, None, None, None, Option(AtsError("NoAtsError")))
-  
+
   def atsDataDTO = createATSDataDTO
 
   private def createATSDataDTO = {

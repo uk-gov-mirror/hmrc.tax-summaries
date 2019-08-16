@@ -19,18 +19,19 @@ package services
 import com.fasterxml.jackson.core.JsonParseException
 import connectors.ODSConnector
 import errors.AtsError
-import models.{AtsYearList, AtsCheck, AtsMiddleTierData}
+import models.{AtsCheck, AtsMiddleTierData, AtsMiddleTierTaxpayerData, AtsYearList}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{Seconds, Span, Millis}
-import play.api.libs.json.{Json, JsValue}
+import org.scalatest.time.{Millis, Seconds, Span}
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.play.test.UnitSpec
 import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo, _}
-import utils.TaxsJsonHelper
+import utils.TaxSummaryJsonHelper
 import utils.TestConstants._
+
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 
 class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
 
@@ -39,7 +40,7 @@ class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
 
   trait TestService extends OdsService {
     override lazy val odsConnector: ODSConnector = mock[ODSConnector]
-    override lazy val jsonHelper: TaxsJsonHelper = mock[TaxsJsonHelper]
+    override lazy val jsonHelper: TaxSummaryJsonHelper = mock[TaxSummaryJsonHelper]
   }
 
   "getPayload" should {
@@ -148,17 +149,17 @@ class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
       when(odsConnector.connectToSATaxpayerDetails(eqTo(testUtr))(any[HeaderCarrier]))
         .thenReturn(Future.successful(mock[JsValue]))
       when(jsonHelper.createTaxYearJson(any[JsValue], eqTo(testUtr), any[JsValue]))
-        .thenReturn(Future.successful(mock[JsValue]))
+        .thenReturn(Future.successful(AtsYearList(testUtr, AtsMiddleTierTaxpayerData(None, None), Nil)))
 
       val result = getATSList(testUtr)(mock[HeaderCarrier])
 
       whenReady(result) { result =>
 
-        result shouldBe a [JsValue]
-
         verify(odsConnector, times(1)).connectToSelfAssessmentList(eqTo(testUtr))(any[HeaderCarrier])
         verify(odsConnector, times(1)).connectToSATaxpayerDetails(eqTo(testUtr))(any[HeaderCarrier])
         verify(jsonHelper, times(1)).createTaxYearJson(any[JsValue], eqTo(testUtr), any[JsValue])
+
+        result shouldBe Right(AtsYearList(testUtr, AtsMiddleTierTaxpayerData(None,None),List()))
       }
     }
 
@@ -171,14 +172,11 @@ class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
 
       whenReady(result) { result =>
 
-        result shouldBe a [JsValue]
-
         verify(odsConnector, times(1)).connectToSelfAssessmentList(eqTo(testUtr))(any[HeaderCarrier])
         verify(odsConnector, never()).connectToSATaxpayerDetails(eqTo(testUtr))(any[HeaderCarrier])
         verify(jsonHelper, never()).createTaxYearJson(any[JsValue], eqTo(testUtr), any[JsValue])
 
-        Json.fromJson[AtsYearList](result).asOpt shouldBe
-          Some(AtsYearList(testUtr, None, None, Some(AtsError("JsonParsingError"))))
+        result shouldBe Left(AtsError("JsonParsingError"))
       }
     }
 
@@ -193,14 +191,11 @@ class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
 
       whenReady(result) { result =>
 
-        result shouldBe a [JsValue]
-
         verify(odsConnector, times(1)).connectToSelfAssessmentList(eqTo(testUtr))(any[HeaderCarrier])
         verify(odsConnector, times(1)).connectToSATaxpayerDetails(eqTo(testUtr))(any[HeaderCarrier])
         verify(jsonHelper, never()).createTaxYearJson(any[JsValue], eqTo(testUtr), any[JsValue])
 
-        Json.fromJson[AtsYearList](result).asOpt shouldBe
-          Some(AtsYearList(testUtr, None, None, Some(AtsError("NoAtsData"))))
+        result shouldBe Left(AtsError("NoAtsData"))
       }
     }
 
@@ -213,14 +208,11 @@ class OdsServiceTest extends UnitSpec with MockitoSugar with ScalaFutures {
 
       whenReady(result) { result =>
 
-        result shouldBe a [JsValue]
-
         verify(odsConnector, times(1)).connectToSelfAssessmentList(eqTo(testUtr))(any[HeaderCarrier])
         verify(odsConnector, never()).connectToSATaxpayerDetails(eqTo(testUtr))(any[HeaderCarrier])
         verify(jsonHelper, never()).createTaxYearJson(any[JsValue], eqTo(testUtr), any[JsValue])
 
-        Json.fromJson[AtsYearList](result).asOpt shouldBe
-          Some(AtsYearList(testUtr, None, None, Some(AtsError("raw exception"))))
+        result shouldBe Left(AtsError("raw exception"))
       }
     }
   }

@@ -25,7 +25,7 @@ import play.api.test.{FakeRequest}
 import play.test.{WithApplication}
 import services.OdsService
 import uk.gov.hmrc.play.test.UnitSpec
-import utils.TaxsJsonHelper
+import utils.TaxSummaryJsonHelper
 import utils.TestConstants._
 import scala.concurrent.Future
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpGet }
@@ -50,7 +50,7 @@ class GovSpendingControllerTest extends UnitSpec {
 
       val odsServiceObject = new OdsService {
         override val odsConnector = odsc
-        override val jsonHelper = new TaxsJsonHelper {}
+        override val jsonHelper = new TaxSummaryJsonHelper {}
       }
 
       new ATSDataController {

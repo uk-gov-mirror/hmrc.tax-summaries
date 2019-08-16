@@ -16,10 +16,9 @@
 
 package models
 
-import errors.AtsError
-import play.api.libs.json.{JsNumber, Json}
+import play.api.libs.json.Json
 
-case class AtsYearList(utr: String, taxPayer: Option[AtsMiddleTierTaxpayerData], atsYearList: Option[List[JsNumber]], errors: Option[AtsError] = None)
+case class AtsYearList(utr: String, taxPayer: AtsMiddleTierTaxpayerData, atsYearList: List[Int])
 
 object AtsYearList {
   implicit val formats = Json.format[AtsYearList]
