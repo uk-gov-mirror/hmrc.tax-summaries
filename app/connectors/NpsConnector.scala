@@ -19,10 +19,12 @@ package connectors
 import com.google.inject.Inject
 import config.ApplicationConfig
 import play.api.Logger
-import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
+import play.api.http.Status.INTERNAL_SERVER_ERROR
+import play.api.libs.json.JsResultException
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, _}
 import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReadsInstances.readEitherOf
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,19 +40,24 @@ class NpsConnector @Inject()(http: HttpClient, applicationConfig: ApplicationCon
         "OriginatorId" -> applicationConfig.originatorId
       )
 
-  def connectToPayeTaxSummary(NINO: String, TAX_YEAR: Int, hc: HeaderCarrier): Future[HttpResponse] = {
+  def connectToPayeTaxSummary(
+    NINO: String,
+    TAX_YEAR: Int,
+    hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, HttpResponse]] = {
     val ninoWithoutSuffix = NINO.take(8)
 
     implicit val desHeaderCarrier: HeaderCarrier = header(hc)
 
-    http.GET[HttpResponse](url("/individuals/annual-tax-summary/" + ninoWithoutSuffix + "/" + TAX_YEAR)) recover {
-      case _: BadRequestException => HttpResponse(BAD_REQUEST)
-      case _: NotFoundException   => HttpResponse(NOT_FOUND)
-      case _: Upstream5xxResponse => HttpResponse(INTERNAL_SERVER_ERROR)
-      case e => {
-        Logger.error(s"Exception in NPSConnector: $e", e)
-        HttpResponse(INTERNAL_SERVER_ERROR)
-      }
+    http.GET[Either[UpstreamErrorResponse, HttpResponse]](
+      url("/individuals/annual-tax-summary/" + ninoWithoutSuffix + "/" + TAX_YEAR))
+  } recover {
+    case e: JsResultException => {
+      Logger.error(s"Exception in NpsService parsing Json: $e", e)
+      Left(
+        UpstreamErrorResponse(
+          s"Exception in NpsService parsing Json: $e",
+          INTERNAL_SERVER_ERROR,
+          INTERNAL_SERVER_ERROR))
     }
   }
 }

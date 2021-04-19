@@ -24,7 +24,7 @@ import play.api.Logger
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.JsResultException
 import repositories.Repository
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,7 +32,7 @@ import scala.concurrent.Future
 class NpsService @Inject()(repository: Repository, innerService: DirectNpsService) {
 
   def getPayeATSData(nino: String, taxYear: Int)(
-    implicit hc: HeaderCarrier): Future[Either[HttpResponse, PayeAtsMiddleTier]] =
+    implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, PayeAtsMiddleTier]] =
     repository
       .get(nino, taxYear)
       .flatMap {
@@ -42,11 +42,11 @@ class NpsService @Inject()(repository: Repository, innerService: DirectNpsServic
       .recover {
         case ex =>
           Logger.error("Failed to fetch data from cache", ex)
-          Left(HttpResponse(INTERNAL_SERVER_ERROR))
+          Left(UpstreamErrorResponse("Failed to fetch data from cache", INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR))
       }
 
   private def refreshCache(nino: String, taxYear: Int)(
-    implicit hc: HeaderCarrier): Future[Either[HttpResponse, PayeAtsMiddleTier]] =
+    implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, PayeAtsMiddleTier]] =
     innerService
       .getPayeATSData(nino, taxYear)
       .flatMap {
@@ -55,22 +55,26 @@ class NpsService @Inject()(repository: Repository, innerService: DirectNpsServic
           repository
             .set(nino, taxYear, data)
             .map(_ => Right(data))
-            .recover { case _ => Left(HttpResponse(INTERNAL_SERVER_ERROR)) }
+            .recover { case _ => Left(UpstreamErrorResponse("message", INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR)) }
       }
 }
 
 class DirectNpsService @Inject()(applicationConfig: ApplicationConfig, npsConnector: NpsConnector) {
   def getPayeATSData(nino: String, taxYear: Int)(
-    implicit hc: HeaderCarrier): Future[Either[HttpResponse, PayeAtsMiddleTier]] =
-    npsConnector.connectToPayeTaxSummary(nino, taxYear - 1, hc) map { response =>
-      response status match {
-        case OK => Right(response.json.as[PayeAtsData].transformToPayeMiddleTier(applicationConfig, nino, taxYear))
-        case _  => Left(response)
-      }
+    implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, PayeAtsMiddleTier]] =
+    npsConnector.connectToPayeTaxSummary(nino, taxYear - 1, hc) map {
+      case Right(response) if response.status == OK =>
+        Right(response.json.as[PayeAtsData].transformToPayeMiddleTier(applicationConfig, nino, taxYear))
+      case Right(response) => Left(UpstreamErrorResponse("message", response.status, INTERNAL_SERVER_ERROR))
+      case Left(error)     => Left(error)
     } recover {
       case e: JsResultException => {
         Logger.error(s"Exception in NpsService parsing Json: $e", e)
-        Left(HttpResponse(INTERNAL_SERVER_ERROR))
+        Left(
+          UpstreamErrorResponse(
+            s"Exception in NpsService parsing Json: $e",
+            INTERNAL_SERVER_ERROR,
+            INTERNAL_SERVER_ERROR))
       }
     }
 }

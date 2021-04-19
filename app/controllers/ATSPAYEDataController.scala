@@ -23,7 +23,7 @@ import models.paye.PayeAtsMiddleTier
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.NpsService
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.collection.immutable.Seq
@@ -36,7 +36,7 @@ class ATSPAYEDataController @Inject()(npsService: NpsService, payeAuthAction: Pa
   def getATSData(nino: String, taxYear: Int): Action[AnyContent] = payeAuthAction.async { implicit request =>
     callConnector(nino, taxYear) map {
       case Right(response)     => Ok(Json.toJson(response))
-      case Left(errorResponse) => new Status(errorResponse.status).apply(errorResponse.json)
+      case Left(errorResponse) => new Status(errorResponse.reportAs).apply(errorResponse.message)
     }
   }
 
@@ -62,11 +62,11 @@ class ATSPAYEDataController @Inject()(npsService: NpsService, payeAuthAction: Pa
 
   def getATSDataMultipleYears(nino: String, yearFrom: Int, yearTo: Int): Action[AnyContent] = payeAuthAction.async {
     implicit request =>
-      def dataList: Seq[Future[Either[HttpResponse, JsValue]]] = (yearFrom to yearTo).toList map { year =>
+      def dataList: Seq[Future[Either[UpstreamErrorResponse, JsValue]]] = (yearFrom to yearTo).toList map { year =>
         callConnector(nino, year) map {
           case Right(response) => Right(Json.toJson(response))
           case Left(error) =>
-            logger.error(s"Fetching $year data for $nino returned ${error.status}")
+            logger.error(s"Fetching $year data for $nino returned ${error.message} with status ${error.statusCode}")
             Left(error)
         }
       }
@@ -84,6 +84,6 @@ class ATSPAYEDataController @Inject()(npsService: NpsService, payeAuthAction: Pa
   }
 
   private def callConnector(nino: String, taxYear: Int)(
-    implicit hc: HeaderCarrier): Future[Either[HttpResponse, PayeAtsMiddleTier]] =
+    implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, PayeAtsMiddleTier]] =
     npsService.getPayeATSData(nino, taxYear)
 }
