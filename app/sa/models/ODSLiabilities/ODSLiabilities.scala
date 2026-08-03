@@ -358,16 +358,19 @@ object ODSLiabilities {
         BrdReduction, BrdCharge,
         IncomeTermination,
         TaxablePayScottishAdvancedRate, TaxableRedundancySar, TaxOnPayScottishAdvancedRate, TaxOnRedundancySar,
-        CGAtLowerRateCI, LowerRateCgtCI, CGAtHigherRateCI, HigherRateCgtCI, 
+        CGAtLowerRateCI, LowerRateCgtCI, CGAtHigherRateCI, HigherRateCgtCI,
         CGAtLowerRateRP, LowerRateCgtRP, CGAtHigherRateRP, HigherRateCgtRP,
         CapOffshoreTrustLiability
       )
+
+    val allLiabilities2026 = allLiabilities2025
 
     Map(
       2022 -> allLiabilities2022,
       2023 -> allLiabilities2023,
       2024 -> allLiabilities2024,
-      2025 -> allLiabilities2025
+      2025 -> allLiabilities2025,
+      2026 -> allLiabilities2026
     )
   }
 
