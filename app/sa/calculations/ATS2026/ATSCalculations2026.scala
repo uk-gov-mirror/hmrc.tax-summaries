@@ -35,7 +35,7 @@ trait ATSCalculations2026 extends ATSCalculations {
 
   override def otherIncome: Amount =
     get(SummaryTotShareOptions) +
-      get(SummaryTotalUklProperty) + //this has changed
+      get(SummaryTotalUklProperty) + // this has changed
       get(SummaryTotForeignIncome) +
       get(SummaryTotTrustEstates) +
       get(SummaryTotalOtherIncome) +
@@ -57,16 +57,19 @@ trait ATSCalculations2026 extends ATSCalculations {
         get(AnnuityPay) +
         get(GiftsInvCharities) +
         get(BpaAllowance) +
-        get(BPA)
+        get(BPA) +
+        get(FiRel) +
+        get(FiRelRestricted)
     ).roundAmountUp()
 
   override def otherAdjustmentsIncreasing: Amount =
-    get(NonDomCharge) +
+    get(TRFCharge) + // changed from nonDom
       get(GiftAidTaxReduced) +
       get(NetAnnuityPaytsTaxDue) +
       get(ChildBenefitCharge) +
       get(PensionSavingChargeable) +
-      get(TaxOnTransitionProfits)
+      get(TaxOnTransitionProfits) +
+      get(WFPCharge)
 
   override def totalIncomeTaxAmount: Amount = {
     val rateDividendAdjustmentTax = savingsRateAmount + // LS12.1
@@ -104,7 +107,6 @@ trait ATSCalculations2026 extends ATSCalculations {
       getWithDefaultAmount(ReliefForFinanceCosts) +
       getWithDefaultAmount(LFIRelief) +
       getWithDefaultAmount(RelTaxAcctFor)
-//      + fiRel
 
   override def totalAmountEmployeeNic: Amount =
     get(EmployeeClass1NI) +
