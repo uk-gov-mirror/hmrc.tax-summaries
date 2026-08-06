@@ -317,6 +317,10 @@ object ODSLiabilities {
   case object LowerRateCgtRP extends ODSLiabilities("lowerRateCgtRP")
   case object CGAtHigherRateRP extends ODSLiabilities("cGAtHigherRateRP")
   case object HigherRateCgtRP extends ODSLiabilities("higherRateCgtRP")
+  case object TRFCharge extends ODSLiabilities("trfCharge")
+  case object WPFCharge extends ODSLiabilities("wpfCharge")
+  case object FIREL extends ODSLiabilities("fiRel")
+  case object FERelRestricted extends ODSLiabilities("feRelRestricted")
 
 
   // format: off
@@ -363,7 +367,15 @@ object ODSLiabilities {
         CapOffshoreTrustLiability
       )
 
-    val allLiabilities2026 = allLiabilities2025
+    val allLiabilities2026 = allLiabilities2024 ++
+      List(
+        BrdReduction, BrdCharge,
+        IncomeTermination,
+        TaxablePayScottishAdvancedRate, TaxableRedundancySar, TaxOnPayScottishAdvancedRate, TaxOnRedundancySar,
+        CGAtLowerRateCI, CGAtHigherRateCI, HigherRateCgtCI,
+        CGAtLowerRateRP, LowerRateCgtRP, CGAtHigherRateRP, HigherRateCgtRP,
+        CapOffshoreTrustLiability
+      )
 
     Map(
       2022 -> allLiabilities2022,
