@@ -89,6 +89,7 @@ class ATSCalculationsFactorySpec extends BaseSpec {
     DividendTaxHighRate     -> Amount.empty(DividendTaxHighRate.apiValue),
     DividendTaxAddHighRate  -> Amount.empty(DividendTaxAddHighRate.apiValue),
     NonDomCharge            -> Amount.empty(NonDomCharge.apiValue),
+//    TRFCharge               -> Amount.empty(TRFCharge.apiValue),
     TaxExcluded             -> Amount.empty(TaxExcluded.apiValue),
     IncomeTaxDue            -> Amount.empty(IncomeTaxDue.apiValue),
     NetAnnuityPaytsTaxDue   -> Amount.empty(NetAnnuityPaytsTaxDue.apiValue),
@@ -112,7 +113,8 @@ class ATSCalculationsFactorySpec extends BaseSpec {
     CgDueLowerRate          -> Amount.empty(CgDueLowerRate.apiValue),
     CgDueHigherRate         -> Amount.empty(CgDueHigherRate.apiValue),
     CapAdjustment           -> Amount.empty(CapAdjustment.apiValue),
-    TaxOnCegAhr             -> Amount.empty(TaxOnCegAhr.apiValue)
+    TaxOnCegAhr             -> Amount.empty(TaxOnCegAhr.apiValue),
+    WFPCharge               -> Amount.empty(WFPCharge.apiValue)
   )
 
   "make" must {

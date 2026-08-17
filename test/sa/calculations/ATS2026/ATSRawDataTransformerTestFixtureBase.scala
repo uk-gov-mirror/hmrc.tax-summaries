@@ -171,7 +171,11 @@ trait ATSRawDataTransformerTestFixtureBase
     "cGAtLowerRateRP"            -> BigDecimal(1220.00),
     "lowerRateCgtRP"             -> BigDecimal(1230.00),
     "cGAtHigherRateRP"           -> BigDecimal(1240.00),
-    "higherRateCgtRP"            -> BigDecimal(1250.00)
+    "higherRateCgtRP"            -> BigDecimal(1250.00),
+//    "trfCharge"                  -> BigDecimal(620.00),
+    "wfpCharge"                  -> BigDecimal(127.00)
+//    "fiRel"                      -> BigDecimal(620.00),
+//    "feRelRestricted"            -> BigDecimal(620.00)
   ).map(item => item._1 -> item._2.setScale(2))
 
   override protected def saPayeNicDetails: Map[String, BigDecimal] = Map(
@@ -324,7 +328,8 @@ trait AtsRawDataTransformerTestFixtureBaseCalculations {
     "netAnnuityPaytsTaxDue",
     "ctnChildBenefitChrgAmt",
     "ctnPensionSavingChrgbleAmt",
-    "ctnTaxOnTransitionPrft"
+    "ctnTaxOnTransitionPrft",
+    "wfpCharge"
   )
 
   protected def expOtherAdjustmentsReducing: Amount = calcExp(

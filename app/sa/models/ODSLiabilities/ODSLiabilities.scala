@@ -317,10 +317,10 @@ object ODSLiabilities {
   case object LowerRateCgtRP extends ODSLiabilities("lowerRateCgtRP")
   case object CGAtHigherRateRP extends ODSLiabilities("cGAtHigherRateRP")
   case object HigherRateCgtRP extends ODSLiabilities("higherRateCgtRP")
-  case object TRFCharge extends ODSLiabilities("trfCharge")
-  case object WPFCharge extends ODSLiabilities("wpfCharge")
-  case object FIREL extends ODSLiabilities("fiRel")
-  case object FERelRestricted extends ODSLiabilities("feRelRestricted")
+//  case object TRFCharge extends ODSLiabilities("trfCharge")
+  case object WFPCharge extends ODSLiabilities("wfpCharge")
+//  case object FIREL extends ODSLiabilities("fiRel")
+//  case object FERelRestricted extends ODSLiabilities("feRelRestricted")
 
 
   // format: off
@@ -344,7 +344,9 @@ object ODSLiabilities {
       TaxablePayScottishStarterRate, TaxCharged, TaxCreditsForDivs, TaxDueAfterAllceRlf, TaxExcluded, TaxOnPayScottishIntermediateRate,
       TaxOnPayScottishStarterRate, TopSlicingRelief, TotalTaxCreditRelief, TradeUnionDeathBenefits, VctSharesRelief,
       EmployeeClass1NI, EmployeeClass2NI, EmployerNI, LFIRelief, SavingsPartnership, DividendsPartnership,
-      TaxOnNonExcludedIncome, SummaryTotForeignSav, GiftAidTaxReduced)
+      TaxOnNonExcludedIncome, SummaryTotForeignSav, GiftAidTaxReduced,
+      WFPCharge
+    )
 
   private val mapLiabilities: Map[Int, List[ODSLiabilities with ApiValue]] = {
     val allLiabilities2022 = allLiabilities ++ List(
@@ -372,10 +374,16 @@ object ODSLiabilities {
         BrdReduction, BrdCharge,
         IncomeTermination,
         TaxablePayScottishAdvancedRate, TaxableRedundancySar, TaxOnPayScottishAdvancedRate, TaxOnRedundancySar,
-        CGAtLowerRateCI, CGAtHigherRateCI, HigherRateCgtCI,
+        CGAtLowerRateCI, LowerRateCgtCI, CGAtHigherRateCI, HigherRateCgtCI, //LowerRateCgtCI needs removing
         CGAtLowerRateRP, LowerRateCgtRP, CGAtHigherRateRP, HigherRateCgtRP,
         CapOffshoreTrustLiability
       )
+      ++ List(
+//      TRFCharge,
+      WFPCharge,
+//      FIREL, FERelRestricted
+    ) //remove nondom
+
 
     Map(
       2022 -> allLiabilities2022,
