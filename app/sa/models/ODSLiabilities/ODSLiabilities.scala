@@ -319,8 +319,8 @@ object ODSLiabilities {
   case object HigherRateCgtRP extends ODSLiabilities("higherRateCgtRP")
 //  case object TRFCharge extends ODSLiabilities("trfCharge")
   case object WFPCharge extends ODSLiabilities("wfpCharge")
-//  case object FIREL extends ODSLiabilities("fiRel")
-//  case object FERelRestricted extends ODSLiabilities("feRelRestricted")
+  case object FIREL extends ODSLiabilities("fiRel")
+  case object FERelRestricted extends ODSLiabilities("feRelRestricted")
 
 
   // format: off
@@ -345,7 +345,7 @@ object ODSLiabilities {
       TaxOnPayScottishStarterRate, TopSlicingRelief, TotalTaxCreditRelief, TradeUnionDeathBenefits, VctSharesRelief,
       EmployeeClass1NI, EmployeeClass2NI, EmployerNI, LFIRelief, SavingsPartnership, DividendsPartnership,
       TaxOnNonExcludedIncome, SummaryTotForeignSav, GiftAidTaxReduced,
-      WFPCharge
+      WFPCharge, FIREL, FERelRestricted
     )
 
   private val mapLiabilities: Map[Int, List[ODSLiabilities with ApiValue]] = {
@@ -381,7 +381,7 @@ object ODSLiabilities {
       ++ List(
 //      TRFCharge,
       WFPCharge,
-//      FIREL, FERelRestricted
+      FIREL, FERelRestricted
     ) //remove nondom
 
 

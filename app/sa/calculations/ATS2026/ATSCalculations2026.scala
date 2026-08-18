@@ -57,9 +57,9 @@ trait ATSCalculations2026 extends ATSCalculations {
         get(AnnuityPay) +
         get(GiftsInvCharities) +
         get(BpaAllowance) +
-        get(BPA)
-//        get(FIREL) +
-//        get(FERelRestricted)
+        get(BPA) +
+        get(FIREL) +
+        get(FERelRestricted)
     ).roundAmountUp()
 
   override def otherAdjustmentsIncreasing: Amount =
@@ -107,7 +107,6 @@ trait ATSCalculations2026 extends ATSCalculations {
       getWithDefaultAmount(ReliefForFinanceCosts) +
       getWithDefaultAmount(LFIRelief) +
       getWithDefaultAmount(RelTaxAcctFor)
-//      + fiRel
 
   override def totalAmountEmployeeNic: Amount =
     get(EmployeeClass1NI) +
