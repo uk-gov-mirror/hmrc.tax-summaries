@@ -63,7 +63,7 @@ trait ATSCalculations2026 extends ATSCalculations {
     ).roundAmountUp()
 
   override def otherAdjustmentsIncreasing: Amount =
-    get(NonDomCharge) +
+    get(TRFCharge) +
       get(GiftAidTaxReduced) +
       get(NetAnnuityPaytsTaxDue) +
       get(ChildBenefitCharge) +
