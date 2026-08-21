@@ -172,7 +172,6 @@ trait ATSCalculations2026 extends ATSCalculations {
     (
       getWithDefaultAmount(LowerRateCgtRPCI) +
         getWithDefaultAmount(HigherRateCgtRPCI) +
-        getWithDefaultAmount(LowerRateCgtCI) +
         getWithDefaultAmount(HigherRateCgtCI) +
         getWithDefaultAmount(LowerRateCgtRP) +
         getWithDefaultAmount(HigherRateCgtRP) +

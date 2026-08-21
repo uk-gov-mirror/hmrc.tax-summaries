@@ -374,7 +374,7 @@ object ODSLiabilities {
         BrdReduction, BrdCharge,
         IncomeTermination,
         TaxablePayScottishAdvancedRate, TaxableRedundancySar, TaxOnPayScottishAdvancedRate, TaxOnRedundancySar,
-        CGAtLowerRateCI, LowerRateCgtCI, CGAtHigherRateCI, HigherRateCgtCI, //LowerRateCgtCI needs removing
+        CGAtLowerRateCI, CGAtHigherRateCI, HigherRateCgtCI, //LowerRateCgtCI needs removing
         CGAtLowerRateRP, LowerRateCgtRP, CGAtHigherRateRP, HigherRateCgtRP,
         CapOffshoreTrustLiability
       )
