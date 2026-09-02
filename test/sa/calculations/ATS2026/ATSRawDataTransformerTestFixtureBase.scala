@@ -103,7 +103,6 @@ trait ATSRawDataTransformerTestFixtureBase
     "ctnTaxOnCegHr"              -> BigDecimal(590.00),
     "ctnTaxableCegAhr"           -> BigDecimal(600.00),
     "ctnTaxOnCegAhr"             -> BigDecimal(610.00),
-    "nonDomChargeAmount"         -> BigDecimal(620.00),
     "taxExcluded"                -> BigDecimal(40000.00),
     "taxOnNonExcludedInc"        -> BigDecimal(60000.00),
     "incomeTaxDue"               -> BigDecimal(6162.58),
